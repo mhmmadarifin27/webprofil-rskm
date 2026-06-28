@@ -3,24 +3,156 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #005B2B;
+  --primary-hover: #004620;
+  --accent: #00C853;
+  --accent-hover: #00A644;
+  --soft-bg: #f8fafc;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-soft-bg: var(--soft-bg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Text Sizing Accessibility Adjustments */
+html.text-size-sm {
+  font-size: 14px;
+}
+html.text-size-base {
+  font-size: 16px;
+}
+html.text-size-lg {
+  font-size: 19px;
+}
+html.text-size-xl {
+  font-size: 22px;
+}
+
+/* High Contrast Mode CSS */
+html.high-contrast {
+  --background: #000000 !important;
+  --foreground: #ffffff !important;
+  --primary: #000000 !important;
+  --accent: #ffff00 !important;
+}
+
+html.high-contrast body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Force high-contrast on all elements */
+html.high-contrast * {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Links, Buttons, Inputs, Selects in High-Contrast get bright yellow text and borders */
+html.high-contrast a,
+html.high-contrast button,
+html.high-contrast select,
+html.high-contrast textarea,
+html.high-contrast input {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+  border: 2.5px solid #ffff00 !important;
+  border-radius: 4px !important;
+  opacity: 1 !important;
+}
+
+html.high-contrast a:hover,
+html.high-contrast button:hover,
+html.high-contrast select:hover {
+  background-color: #ffff00 !important;
+  color: #000000 !important;
+  text-decoration: underline !important;
+}
+
+/* For active elements */
+html.high-contrast .active,
+html.high-contrast [aria-current="page"] {
+  outline: 3px solid #ffff00 !important;
+  background-color: #111111 !important;
+}
+
+/* Specific elements like badges */
+html.high-contrast .badge,
+html.high-contrast [role="badge"] {
+  border: 1.5px solid #ffff00 !important;
+  color: #ffff00 !important;
+  background-color: #000000 !important;
+}
+
+/* Keep SVGs/icons visible in high contrast by setting stroke to yellow/white */
+html.high-contrast svg {
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+html.high-contrast svg path {
+  stroke: currentColor !important;
+}
+
+/* Premium Animations & Enhancements */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(0, 91, 43, 0.15);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glassmorphism elements for modern aesthetics */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
