@@ -197,7 +197,7 @@ export default function Beranda() {
               transform: `translateX(-${(activeSlide * 100) / heroSlides.length}%)` 
             }}
           >
-            {heroSlides.map((slide) => (
+            {heroSlides.map((slide, idx) => (
               <div 
                 key={slide.id} 
                 className="w-full h-full relative flex items-center shrink-0"
@@ -209,6 +209,8 @@ export default function Beranda() {
                     src={slide.image_url}
                     alt={slide.title}
                     className="w-full h-full object-cover object-center"
+                    loading={idx === 0 ? "eager" : "lazy"}
+                    {...(idx === 0 ? { fetchPriority: "high" } : {})}
                   />
                   {/* Premium overlay to enhance text readability */}
                   <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/50 to-transparent"></div>

@@ -62,7 +62,7 @@ export interface HeroSlideData {
 
 // ================= MOCK DATA INITIALIZATION =================
 
-const defaultHeroSlides: HeroSlideData[] = [
+export const defaultHeroSlides: HeroSlideData[] = [
   {
     id: "h1",
     title: "Penglihatan Jernih, Hidup Lebih Baik.",

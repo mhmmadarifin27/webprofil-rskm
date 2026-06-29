@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white font-sans antialiased text-slate-800">
       
       {/* LEFT COLUMN: AUTHENTICATION FORM (45% Width) */}
-      <div className="w-full lg:w-[45%] flex flex-col justify-between p-8 md:p-12 lg:p-16 min-h-screen bg-white">
+      <div className="w-full lg:w-[45%] flex flex-col justify-between p-8 md:p-12 lg:p-16 min-h-[60vh] lg:min-h-screen bg-white order-2 lg:order-1">
         
         {/* Top Branding Section */}
         <div className="flex items-center gap-3">
@@ -188,7 +188,7 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* RIGHT COLUMN: BRAND BANNER & ILLUST (55% Width) */}
-      <div className="hidden lg:flex lg:w-[55%] bg-emerald-950 relative flex-col justify-between p-16 overflow-hidden min-h-screen text-center lg:text-left">
+      <div className="flex w-full lg:w-[55%] bg-emerald-950 relative flex-col justify-between p-8 lg:p-16 overflow-hidden h-64 lg:h-auto lg:min-h-screen text-center lg:text-left order-1 lg:order-2">
         
         {/* Underlay Photo with Green Overlay */}
         <div 
@@ -200,7 +200,7 @@ export default function ResetPasswordPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/85 to-emerald-950/95 mix-blend-multiply pointer-events-none"></div>
 
         {/* Top Navigation Jumper */}
-        <div className="absolute top-8 right-8 z-20">
+        <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-20">
           <Link 
             href="/" 
             className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-full text-xs font-bold tracking-wide transition-all shadow-xs"
@@ -211,15 +211,15 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Visi Misi Brand Content in center */}
-        <div className="my-auto max-w-lg relative z-10 space-y-5">
-          <h2 className="text-white text-3xl lg:text-4xl font-black leading-tight tracking-tight uppercase">
+        <div className="my-auto max-w-lg relative z-10 space-y-2 lg:space-y-5">
+          <h2 className="text-white text-xl lg:text-4xl font-black leading-tight tracking-tight uppercase">
             Pelayanan Medis Spesialis & Terpercaya
           </h2>
-          <p className="text-emerald-150/90 text-sm font-semibold leading-relaxed">
+          <p className="text-white/90 text-xs lg:text-sm font-semibold leading-relaxed">
             "Mewujudkan masyarakat Sumatera Selatan dengan penglihatan optimal melalui pelayanan kesehatan mata prima, bermutu tinggi, dan terjangkau."
           </p>
           {/* Accent horizontal yellow bar */}
-          <div className="w-16 h-1.5 bg-yellow-500 rounded-full shadow-md"></div>
+          <div className="w-16 h-1.5 bg-yellow-500 rounded-full shadow-md mx-auto lg:mx-0"></div>
         </div>
 
       </div>

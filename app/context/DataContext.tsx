@@ -39,6 +39,7 @@ import {
   SubscriberData,
   getSubscribers,
   deleteSubscriber,
+  defaultHeroSlides,
 } from "@/lib/db";
 import { supabase, isSupabaseConnected } from "@/lib/supabase";
 
@@ -78,6 +79,8 @@ interface DataContextType {
   updateClinicProfile: (clinic: ClinicData) => Promise<void>;
   createOrUpdateHeroSlide: (slide: HeroSlideData) => Promise<void>;
   removeHeroSlide: (id: string) => Promise<void>;
+  reorderHeroSlides: (orderedSlides: HeroSlideData[]) => Promise<void>;
+  setLocalHeroSlides: (slides: HeroSlideData[]) => void;
   createOrUpdateDirector: (director: DirectorData) => Promise<void>;
   removeDirector: (id: string) => Promise<void>;
   createOrUpdateLibraryItem: (item: LibraryItem) => Promise<void>;
@@ -96,7 +99,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [doctors, setDoctors] = useState<DoctorData[]>([]);
   const [posts, setPosts] = useState<PostData[]>([]);
   const [beds, setBeds] = useState<BedData[]>([]);
-  const [heroSlides, setHeroSlides] = useState<HeroSlideData[]>([]);
+  const [heroSlides, setHeroSlides] = useState<HeroSlideData[]>(defaultHeroSlides);
   const [directors, setDirectors] = useState<DirectorData[]>([]);
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
   const [feedbackMessages, setFeedbackMessages] = useState<FeedbackMessage[]>([]);
@@ -107,28 +110,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Core Async Data Loader
   const loadAllData = async () => {
     try {
-      const [p, c, d, po, b, hs, dir, lib, fb, sub] = await Promise.all([
-        getPages(),
-        getClinics(),
-        getDoctors(),
-        getPosts(),
-        getBeds(),
-        getHeroSlides(),
-        getDirectors(),
-        getLibraryItems(),
-        getFeedbackMessages(),
-        getSubscribers(),
-      ]);
-      setPages(p);
-      setClinics(c);
-      setDoctors(d);
-      setPosts(po);
-      setBeds(b);
-      setHeroSlides(hs);
-      setDirectors(dir);
-      setLibraryItems(lib);
-      setFeedbackMessages(fb);
-      setSubscribers(sub);
+      const promises = [
+        getPages().then(setPages),
+        getClinics().then(setClinics),
+        getDoctors().then(setDoctors),
+        getPosts().then(setPosts),
+        getBeds().then(setBeds),
+        getHeroSlides().then(setHeroSlides),
+        getDirectors().then(setDirectors),
+        getLibraryItems().then(setLibraryItems),
+        getFeedbackMessages().then(setFeedbackMessages),
+        getSubscribers().then(setSubscribers),
+      ];
+      await Promise.all(promises);
     } catch (e) {
       console.error("Error loading async data: ", e);
     } finally {
@@ -296,6 +290,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setHeroSlides(updated);
   };
 
+  const reorderHeroSlides = async (orderedSlides: HeroSlideData[]) => {
+    const slidesWithNewIndices = orderedSlides.map((slide, idx) => ({
+      ...slide,
+      order_index: idx + 1,
+    }));
+    setHeroSlides(slidesWithNewIndices);
+
+    try {
+      const promises = slidesWithNewIndices.map((slide) => saveHeroSlide(slide));
+      await Promise.all(promises);
+    } catch (e) {
+      console.error("Gagal menyimpan urutan baru slide hero:", e);
+      const original = await getHeroSlides();
+      setHeroSlides(original);
+      throw e;
+    }
+  };
+
   const createOrUpdateDirector = async (director: DirectorData) => {
     await saveDirector(director);
     const updated = await getDirectors();
@@ -365,6 +377,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         updateClinicProfile,
         createOrUpdateHeroSlide,
         removeHeroSlide,
+        reorderHeroSlides,
+        setLocalHeroSlides: setHeroSlides,
         createOrUpdateDirector,
         removeDirector,
         createOrUpdateLibraryItem,

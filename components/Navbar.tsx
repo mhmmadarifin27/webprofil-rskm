@@ -19,6 +19,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const isHomepage = pathname === "/";
@@ -28,7 +29,7 @@ export default function Navbar() {
     if (!isHomepage) return;
 
     const handleScroll = () => {
-      if (window.scrollY > 450) {
+      if (window.scrollY > 50) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
@@ -93,6 +94,7 @@ export default function Navbar() {
 
   const closeAll = () => {
     setActiveDropdown(null);
+    setMobileDropdown(null);
     setMobileMenuOpen(false);
   };
 
@@ -375,90 +377,127 @@ export default function Navbar() {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-100 bg-white py-4 px-6 space-y-5 shadow-inner max-h-[calc(100vh-120px)] overflow-y-auto text-slate-800">
+        <div className="lg:hidden border-t border-slate-100 bg-white py-4 px-6 space-y-4 shadow-inner max-h-[calc(100vh-120px)] overflow-y-auto text-slate-800 animate-fade-in">
           {/* Static Link */}
           <Link
             href="/"
             onClick={closeAll}
-            className="block py-2 text-sm font-bold text-slate-800 border-b border-slate-50 hover:text-primary"
+            className="block py-2.5 text-sm font-bold text-slate-800 border-b border-slate-100 hover:text-primary transition-colors"
           >
             Beranda
           </Link>
 
-          {/* Profil Section */}
-          <div>
-            <div className="text-[10px] font-black text-slate-400 tracking-wider mb-1">PROFIL RUMAH SAKIT</div>
-            <div className="pl-2 space-y-2 border-l border-slate-100">
-              {profilPages.map((page) => (
-                <Link key={page.id} href={`/${page.slug}`} onClick={closeAll} className="block py-1 text-sm font-medium text-slate-600 hover:text-primary">
-                  {page.title}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Pelayanan Section */}
-          <div>
-            <div className="text-[10px] font-black text-slate-400 tracking-wider mb-1">KLINIK & SPESIALIS MATA</div>
-            <div className="pl-2 grid grid-cols-1 gap-2 border-l border-slate-100 max-h-48 overflow-y-auto mb-2">
-              {clinics.map((clinic) => (
-                <Link key={clinic.id} href={`/pelayanan/${clinic.slug}`} onClick={closeAll} className="block py-1 text-xs font-bold text-slate-600 hover:text-primary">
-                  {clinic.name}
-                </Link>
-              ))}
-            </div>
-            {pelayananPages.length > 0 && (
-              <>
-                <div className="text-[9px] font-black text-slate-400 tracking-wider mb-1 pl-2 uppercase">Layanan Lainnya</div>
-                <div className="pl-2 space-y-2 border-l border-slate-100">
-                  {pelayananPages.map((page) => (
-                    <Link key={page.id} href={`/${page.slug}`} onClick={closeAll} className="block py-1 text-sm font-medium text-slate-600 hover:text-primary">
-                      {page.title}
-                    </Link>
-                  ))}
-                </div>
-              </>
+          {/* Profil Dropdown */}
+          <div className="border-b border-slate-100 pb-2">
+            <button
+              onClick={() => setMobileDropdown(mobileDropdown === "profil" ? null : "profil")}
+              className="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-800 hover:text-primary cursor-pointer text-left focus:outline-none"
+            >
+              <span>Profil</span>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${mobileDropdown === "profil" ? "rotate-180 text-primary" : ""}`} />
+            </button>
+            {mobileDropdown === "profil" && (
+              <div className="pl-3 mt-1.5 space-y-2 border-l border-emerald-500/20 animate-fade-in">
+                {profilPages.map((page) => (
+                  <Link key={page.id} href={`/${page.slug}`} onClick={closeAll} className="block py-1.5 text-xs font-semibold text-slate-600 hover:text-primary transition-colors">
+                    {page.title}
+                  </Link>
+                ))}
+              </div>
             )}
           </div>
 
-          {/* Info Pengunjung Section */}
-          <div>
-            <div className="text-[10px] font-black text-slate-400 tracking-wider mb-1">INFO PENGUNJUNG</div>
-            <div className="pl-2 space-y-2 border-l border-slate-100">
-              {infoPages.map((page) => (
-                <Link key={page.id} href={`/${page.slug}`} onClick={closeAll} className="block py-1 text-sm font-medium text-slate-600 hover:text-primary">
-                  {page.title}
-                </Link>
-              ))}
-            </div>
+          {/* Pelayanan Dropdown */}
+          <div className="border-b border-slate-100 pb-2">
+            <button
+              onClick={() => setMobileDropdown(mobileDropdown === "pelayanan" ? null : "pelayanan")}
+              className="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-800 hover:text-primary cursor-pointer text-left focus:outline-none"
+            >
+              <span>Pelayanan</span>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${mobileDropdown === "pelayanan" ? "rotate-180 text-primary" : ""}`} />
+            </button>
+            {mobileDropdown === "pelayanan" && (
+              <div className="pl-3 mt-1.5 border-l border-emerald-500/20 animate-fade-in space-y-3">
+                <div>
+                  <div className="text-[9px] font-black text-slate-400 tracking-wider mb-1 uppercase">Spesialis & Subspesialis</div>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {clinics.map((clinic) => (
+                      <Link key={clinic.id} href={`/pelayanan/${clinic.slug}`} onClick={closeAll} className="block py-1 text-xs font-bold text-slate-600 hover:text-primary transition-colors">
+                        {clinic.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                {pelayananPages.length > 0 && (
+                  <div>
+                    <div className="text-[9px] font-black text-slate-400 tracking-wider mb-1 uppercase">Layanan Lainnya</div>
+                    <div className="space-y-1.5">
+                      {pelayananPages.map((page) => (
+                        <Link key={page.id} href={`/${page.slug}`} onClick={closeAll} className="block py-1 text-xs font-bold text-slate-600 hover:text-primary transition-colors">
+                          {page.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Media Section */}
-          <div>
-            <div className="text-[10px] font-black text-slate-400 tracking-wider mb-1">MEDIA & INFORMASI</div>
-            <div className="pl-2 space-y-2 border-l border-slate-100">
-              <Link href="/perpustakaan" onClick={closeAll} className="block py-1 text-sm font-medium text-slate-600 hover:text-primary">
-                Perpustakaan
-              </Link>
-              <Link href="/#berita-kegiatan" onClick={closeAll} className="block py-1 text-sm font-medium text-slate-600 hover:text-primary">
-                Berita & Artikel
-              </Link>
-              <Link href="/#kegiatan-rs" onClick={closeAll} className="block py-1 text-sm font-medium text-slate-600 hover:text-primary">
-                Dokumentasi Kegiatan
-              </Link>
-              {mediaPages.map((page) => (
-                <Link key={page.id} href={`/${page.slug}`} onClick={closeAll} className="block py-1 text-sm font-medium text-slate-600 hover:text-primary">
-                  {page.title}
+          {/* Info Pengunjung Dropdown */}
+          <div className="border-b border-slate-100 pb-2">
+            <button
+              onClick={() => setMobileDropdown(mobileDropdown === "info" ? null : "info")}
+              className="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-800 hover:text-primary cursor-pointer text-left focus:outline-none"
+            >
+              <span>Info Pengunjung</span>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${mobileDropdown === "info" ? "rotate-180 text-primary" : ""}`} />
+            </button>
+            {mobileDropdown === "info" && (
+              <div className="pl-3 mt-1.5 space-y-2 border-l border-emerald-500/20 animate-fade-in">
+                {infoPages.map((page) => (
+                  <Link key={page.id} href={`/${page.slug}`} onClick={closeAll} className="block py-1.5 text-xs font-semibold text-slate-600 hover:text-primary transition-colors">
+                    {page.title}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Media Dropdown */}
+          <div className="border-b border-slate-100 pb-2">
+            <button
+              onClick={() => setMobileDropdown(mobileDropdown === "media" ? null : "media")}
+              className="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-800 hover:text-primary cursor-pointer text-left focus:outline-none"
+            >
+              <span>Media & Informasi</span>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${mobileDropdown === "media" ? "rotate-180 text-primary" : ""}`} />
+            </button>
+            {mobileDropdown === "media" && (
+              <div className="pl-3 mt-1.5 space-y-2 border-l border-emerald-500/20 animate-fade-in">
+                <Link href="/perpustakaan" onClick={closeAll} className="block py-1 text-xs font-semibold text-slate-600 hover:text-primary transition-colors">
+                  Perpustakaan
                 </Link>
-              ))}
-            </div>
+                <Link href="/#berita-kegiatan" onClick={closeAll} className="block py-1 text-xs font-semibold text-slate-600 hover:text-primary transition-colors">
+                  Berita & Artikel
+                </Link>
+                <Link href="/#kegiatan-rs" onClick={closeAll} className="block py-1 text-xs font-semibold text-slate-600 hover:text-primary transition-colors">
+                  Dokumentasi Kegiatan
+                </Link>
+                {mediaPages.map((page) => (
+                  <Link key={page.id} href={`/${page.slug}`} onClick={closeAll} className="block py-1.5 text-xs font-semibold text-slate-600 hover:text-primary transition-colors">
+                    {page.title}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Hubungi Kami Mobile link */}
           <Link
             href="/hubungi-kami"
             onClick={closeAll}
-            className="block py-2 text-sm font-bold text-slate-800 border-b border-slate-50 hover:text-primary"
+            className="block py-2.5 text-sm font-bold text-slate-800 border-b border-slate-100 hover:text-primary transition-colors"
           >
             Hubungi Kami
           </Link>

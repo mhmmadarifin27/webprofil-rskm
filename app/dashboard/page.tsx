@@ -37,6 +37,7 @@ import {
   LogOut,
   Loader,
   Users,
+  GripVertical,
 } from "lucide-react";
 
 type Role = "SUPER_ADMIN" | "ADMIN_BIASA";
@@ -67,6 +68,8 @@ export default function DashboardPage() {
     updateClinicProfile,
     createOrUpdateHeroSlide,
     removeHeroSlide,
+    reorderHeroSlides,
+    setLocalHeroSlides,
     createOrUpdateDirector,
     removeDirector,
     createOrUpdateLibraryItem,
@@ -209,6 +212,7 @@ export default function DashboardPage() {
     order_index: 1,
   });
   const [isHeroFormOpen, setIsHeroFormOpen] = useState(false);
+  const [draggedSlideIdx, setDraggedSlideIdx] = useState<number | null>(null);
 
   // Form State: Jajaran Direksi
   const [directorForm, setDirectorForm] = useState({
@@ -419,6 +423,53 @@ export default function DashboardPage() {
     });
   };
 
+  // Client-side Image Compression Helper
+  const compressImage = (base64Str: string, callback: (compressed: string) => void) => {
+    // If the image is extremely small, skip compression
+    if (base64Str.length < 50000) {
+      callback(base64Str);
+      return;
+    }
+
+    const img = new window.Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+
+      const MAX_WIDTH = 1200;
+      const MAX_HEIGHT = 1200;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width = Math.round((width * MAX_HEIGHT) / height);
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+        callback(compressedBase64);
+      } else {
+        callback(base64Str);
+      }
+    };
+    img.onerror = () => {
+      callback(base64Str);
+    };
+  };
+
   // Base64 file uploader helper
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -429,7 +480,7 @@ export default function DashboardPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
-          callback(reader.result);
+          compressImage(reader.result, callback);
         }
       };
       reader.readAsDataURL(file);
@@ -449,14 +500,18 @@ export default function DashboardPage() {
         const reader = new FileReader();
         reader.onloadend = () => {
           if (typeof reader.result === "string") {
-            newImages.push(reader.result);
-          }
-          loadedCount++;
-          if (loadedCount === files.length) {
-            setPageForm((prev) => ({
-              ...prev,
-              grid_images: [...prev.grid_images, ...newImages],
-            }));
+            compressImage(reader.result, (compressed) => {
+              newImages.push(compressed);
+              loadedCount++;
+              if (loadedCount === files.length) {
+                setPageForm((prev) => ({
+                  ...prev,
+                  grid_images: [...prev.grid_images, ...newImages],
+                }));
+              }
+            });
+          } else {
+            loadedCount++;
           }
         };
         reader.readAsDataURL(file);
@@ -736,6 +791,35 @@ export default function DashboardPage() {
         triggerNotification("Slide hero berhasil dihapus!");
       }
     );
+  };
+
+  // Drag and Drop handlers for Hero Slides
+  const handleSlideDragStart = (index: number) => {
+    setDraggedSlideIdx(index);
+  };
+
+  const handleSlideDragOver = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedSlideIdx === null || draggedSlideIdx === targetIndex) return;
+
+    const reordered = [...heroSlides];
+    const draggedItem = reordered[draggedSlideIdx];
+
+    reordered.splice(draggedSlideIdx, 1);
+    reordered.splice(targetIndex, 0, draggedItem);
+
+    setDraggedSlideIdx(targetIndex);
+    setLocalHeroSlides(reordered);
+  };
+
+  const handleSlideDragEnd = async () => {
+    setDraggedSlideIdx(null);
+    try {
+      await reorderHeroSlides(heroSlides);
+      triggerNotification("Urutan slide hero berhasil diperbarui!");
+    } catch (err) {
+      triggerNotification("Gagal memperbarui urutan slide.");
+    }
   };
 
   if (isLoading) {
@@ -2342,17 +2426,7 @@ export default function DashboardPage() {
                         />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Urutan Tampil</label>
-                        <input
-                          type="number"
-                          min={1}
-                          required
-                          value={heroForm.order_index}
-                          onChange={(e) => setHeroForm({ ...heroForm, order_index: parseInt(e.target.value) || 1 })}
-                          className="w-full text-xs font-bold bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500"
-                        />
-                      </div>
+                      {/* Order index is now managed automatically via drag-and-drop reordering */}
 
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Judul Utama Slide</label>
@@ -2409,10 +2483,26 @@ export default function DashboardPage() {
                 )}
 
                 {heroSlides.map((slide, index) => (
-                  <div key={slide.id} className="bg-slate-950 border border-slate-850 rounded-3xl overflow-hidden flex flex-col md:flex-row gap-0">
+                  <div 
+                    key={slide.id} 
+                    draggable={true}
+                    onDragStart={() => handleSlideDragStart(index)}
+                    onDragOver={(e) => handleSlideDragOver(e, index)}
+                    onDragEnd={handleSlideDragEnd}
+                    className={`bg-slate-950 rounded-3xl overflow-hidden flex flex-col md:flex-row gap-0 transition-all duration-200 border ${
+                      draggedSlideIdx === index 
+                        ? "opacity-35 border-dashed border-emerald-500 bg-slate-900/60 scale-[0.98]" 
+                        : "border-slate-850 hover:border-slate-750"
+                    }`}
+                  >
+                    {/* Grip Handle Indicator on Desktop */}
+                    <div className="hidden md:flex items-center justify-center px-3 bg-slate-900/30 border-r border-slate-850/50 cursor-grab active:cursor-grabbing text-slate-500 hover:text-slate-300 transition-colors">
+                      <GripVertical className="w-4 h-4" />
+                    </div>
+
                     {/* Thumbnail */}
                     <div className="w-full md:w-64 h-40 md:h-auto shrink-0 relative overflow-hidden">
-                      <img src={slide.image_url} alt={slide.title} className="w-full h-full object-cover" />
+                      <img src={slide.image_url} alt={slide.title} className="w-full h-full object-cover pointer-events-none" />
                       <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 to-transparent" />
                       <div className="absolute top-3 left-3 bg-slate-900/80 border border-slate-700 rounded-lg px-2 py-1">
                         <span className="text-[9px] font-black text-slate-300 uppercase">Urutan #{slide.order_index}</span>
@@ -2436,7 +2526,7 @@ export default function DashboardPage() {
                         </button>
                         <button
                           onClick={() => handleHeroDelete(slide.id)}
-                          className="flex items-center gap-1.5 bg-slate-900 hover:bg-red-900/20 border border-slate-800 hover:border-red-800 text-red-400 text-[10px] font-bold px-3 py-2 rounded-lg transition-all cursor-pointer"
+                          className="flex items-center gap-1.5 bg-slate-900 hover:bg-red-900/20 border border-slate-800 hover:border-red-800 text-red-450 text-[10px] font-bold px-3 py-2 rounded-lg transition-all cursor-pointer"
                         >
                           <Trash2 className="w-3 h-3" />
                           <span>Hapus</span>
